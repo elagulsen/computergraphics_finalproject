@@ -10,7 +10,7 @@ from display import *
   #      - The fist index (LOCATION) represents the vector to the light.
   #      - The second index (COLOR) represents the color.
 
-  # Reflection constants (ka, kd, ks) are represened as arrays of
+  # Reflection constants (ka, kd, ks) are represented as arrays of
   # doubles (red, green, blue)
 
 AMBIENT = 0
