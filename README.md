@@ -1,6 +1,6 @@
-** Computer Graphics Final Project: Ela Gulsen **
+# Computer Graphics Final Project: Ela Gulsen
 
-Planned Features
+## Planned Features
  * Phong and Gouraud shading
  * Sine/exponential/log vary options
  * Texture mapping onto boxes
