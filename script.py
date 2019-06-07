@@ -102,6 +102,8 @@ def run(filename):
                           'blue': [0.2, 0.5, 0.5]}]
     reflect = '.white'
 
+    normal_hash_table = dict()
+
     (name, num_frames) = first_pass(commands)
     frames = second_pass(commands, num_frames)
 
