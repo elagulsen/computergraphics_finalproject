@@ -76,45 +76,45 @@ def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x1, y1, z1)
     add_point(polygons, x2, y2, z2)
 
-def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, reflect):
+
+#go through each polygon in polygons
+#if point (x, y, z) is found in the polygon, calculate the normal and
+#add the normal to Nv>
+#make sure to cut off floating points at 3 digits
+#once all polygons have been traversed, save this into a hash table
+#normal_hash_table has been defined as an empty dict in script.py
+def hash_normals( polygons, point):
+    counter = 0
+    normal = [0,0,0]
+    point = [int(100 * v)/100.0 for v in point]
+    while counter < polygons.len():
+	if int([100 * polygons[counter][v]/100.0 for v in range(3)]) == point or\
+	   int([100 * polygons[counter + 1][v]/100.0 for v in range(3)]) == point or\
+	   int([100 * polygons[counter + 2][v]/100.0 for v in range(3)]) == point:
+	     normal = [normal[v] + calculate_normal(polygons,counter)[v] for v in range(3)]
+	counter += 3
+    normal_hash_table[point] = normal
+
+def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, reflect, shading = 'FLAT'):
     if len(polygons) < 2:
         print 'Need at least 3 points to draw'
         return
 
     point = 0
     while point < len(polygons) - 2:
-
-        normal = calculate_normal(polygons, point)[:]
-
-        #print normal
-        if normal[2] > 0:
-
-            color = get_lighting(normal, view, ambient, light, symbols, reflect )
-            scanline_convert(polygons, point, screen, zbuffer, color)
-
-            # draw_line( int(polygons[point][0]),
-            #            int(polygons[point][1]),
-            #            polygons[point][2],
-            #            int(polygons[point+1][0]),
-            #            int(polygons[point+1][1]),
-            #            polygons[point+1][2],
-            #            screen, zbuffer, color)
-            # draw_line( int(polygons[point+2][0]),
-            #            int(polygons[point+2][1]),
-            #            polygons[point+2][2],
-            #            int(polygons[point+1][0]),
-            #            int(polygons[point+1][1]),
-            #            polygons[point+1][2],
-            #            screen, zbuffer, color)
-            # draw_line( int(polygons[point][0]),
-            #            int(polygons[point][1]),
-            #            polygons[point][2],
-            #            int(polygons[point+2][0]),
-            #            int(polygons[point+2][1]),
-            #            polygons[point+2][2],
-            #            screen, zbuffer, color)
-        point+= 3
-
+	if shading == 'FLAT':
+            normal = calculate_normal(polygons, point)[:]
+            if normal[2] > 0:
+                color = get_lighting(normal, view, ambient, light, symbols, reflect )
+                scanline_convert(polygons, point, screen, zbuffer, color)
+            point+= 3
+	elif shading == 'GOURAD':
+	    return
+	    #do some stuff here where scanline is a gradient and computed using vertices
+  	    #use some funky hash normal stuff idk
+	elif shading == 'PHONG':
+	    return
+	    #whomst
 
 def add_box( polygons, x, y, z, width, height, depth ):
     x1 = x + width
