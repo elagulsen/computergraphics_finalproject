@@ -25,8 +25,8 @@ def get_lighting(normal, view, ambient, light, symbols, reflect ):
     #light_sources is a list of all the lighting sources in symbols
     light_sources = []
     for symbol in symbols:
-	if symbols[symbol][0] == 'light':
-	    light_sources.append(symbols[symbol][1])   
+        if symbols[symbol][0] == 'light':
+            light_sources.append(symbols[symbol][1])   
 
     n = normal[:]
     normalize(n)

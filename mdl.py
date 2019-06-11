@@ -279,7 +279,8 @@ def p_command_basename(p):
     commands.append(cmd)
 
 def p_command_vary(p):
-    """command : VARY SYMBOL NUMBER NUMBER NUMBER NUMBER"""
+    """command : VARY SYMBOL NUMBER NUMBER NUMBER NUMBER
+               | VARY SYMBOL NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER"""
     cmd = {'op' : p[1], 'args' : p[3:], 'knob' : p[2]}
     symbols[p[2]] = ['knob', 0]
     commands.append(cmd)
@@ -312,10 +313,11 @@ def p_command_constants(p):
 def p_command_light(p):
     """command : LIGHT SYMBOL NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER SYMBOL
 	     | LIGHT SYMBOL NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER"""
-    symbols[p[2]] = ['light', {'location' : p[3:6], 'color' : p[6:9]}]
+    symbols[p[2]] = ['light', {'location' : p[3:6], 'color' : p[6:9], 'knob': None}]
     cmd = {'op':p[1], 'args' : None, 'light' : p[2], 'knob': None }
     if len(p) == 10:
-	cmd['knob'] = p[9]
+        cmd['knob'] = p[9]
+        symbols[p[2]][1]['knob'] = p[9]
 	symbols[p[9]] = ['knob', 0]
     commands.append(cmd)
 
