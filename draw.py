@@ -20,7 +20,7 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, color):
         x+= 1
         z+= delta_z
 
-def scanline_convert(polygons, i, screen, zbuffer, color):
+def scanline_convert(polygons, i, screen, zbuffer, color, shading='FLAT'):
     flip = False
     BOT = 0
     TOP = 2
@@ -29,12 +29,6 @@ def scanline_convert(polygons, i, screen, zbuffer, color):
     points = [ (polygons[i][0], polygons[i][1], polygons[i][2]),
                (polygons[i+1][0], polygons[i+1][1], polygons[i+1][2]),
                (polygons[i+2][0], polygons[i+2][1], polygons[i+2][2]) ]
-
-    # alas random color, we hardly knew ye
-    #color = [0,0,0]
-    #color[RED] = (23*(i/3)) %256
-    #color[GREEN] = (109*(i/3)) %256
-    #color[BLUE] = (227*(i/3)) %256
 
     points.sort(key = lambda x: x[1])
     x0 = points[BOT][0]
@@ -109,7 +103,9 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, ref
                 scanline_convert(polygons, point, screen, zbuffer, color)
             point+= 3
 	elif shading == 'GOURAD':
-	    return
+	    normal = calculate_normal(polygons, point)[:]
+	    if normal[2] > 0:
+		gourad_scanlines(polygons, point, zbuffer, view, ambient, light, symbols, reflect )
 	    #do some stuff here where scanline is a gradient and computed using vertices
   	    #use some funky hash normal stuff idk
 	elif shading == 'PHONG':
