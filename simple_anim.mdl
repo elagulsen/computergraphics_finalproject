@@ -1,5 +1,6 @@
 frames 50
 basename simple_50
+shading gouraud
 
 light l0 1 1 1 150 0 0 sun
 light l1 -1 1 1 0 0 150 sun

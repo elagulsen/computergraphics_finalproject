@@ -1,5 +1,6 @@
 import math
 from display import *
+from draw import *
 
   # IMPORANT NOTE
 
@@ -19,22 +20,7 @@ LOCATION = 0
 COLOR = 1
 SPECULAR_EXP = 8
 
-def gourad_scanlines(polygons, point, zbuffer, view, ambient, light, symbols, reflect):
-    #check if point NOT in normal_hash_table, if it isn't, run hash_normals for the point
-    #hash_normals(polygons, point)
-    #changes normal_hash_table
-    for i in range(3):
-	if not point in normal_hash_table:
-   	    hash_normals(polygons, point)
-	point += 1 
-    point -= 2
-    colors = [get_lighting(normal_hash_table[x]), view, ambient, light, symbols, reflect) for x in range(point, point+3)]
-    #colors[0] is point0 color, colors[1] point1, etc....
-    #here, we get our 3 gradient points - bottom, mid, and top
-    #modify scanlines function
-
-#lighting functions
-def get_lighting(normal, view, ambient, light, symbols, reflect ):
+def get_lighting(normal, view, ambient, symbols, reflect ):
     #light_sources is a list of all the lighting sources in symbols
     light_sources = []
     for symbol in symbols:
@@ -97,9 +83,8 @@ def calculate_specular(light_sources, reflect, view, normal):
         s[BLUE] += (light['color'][BLUE] * reflect['blue'][SPECULAR] * result) / len(light_sources)
     return s
 
+#color limited at 245 rather than 255 for aesthetic reasons
 def limit_color(color):
-    #for aesthetic reasons, we're actually going to limit the color at 245.
-    #i just think bright white is a bad look.
     color[RED] = 245 if color[RED] > 245 else color[RED]
     color[GREEN] = 245 if color[GREEN] > 245 else color[GREEN]
     color[BLUE] = 245 if color[BLUE] > 245 else color[BLUE]
