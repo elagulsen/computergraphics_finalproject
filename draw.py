@@ -72,18 +72,20 @@ def scanline_convert(polygons, i, screen, zbuffer, colors, shading='FLAT'):
 
 #add a gouraud_draw_scanlines
 
-def gouraud_scanlines(polygons, point, zbuffer, view, ambient, symbols, reflect, normal_hash_table):
+def gouraud_scanlines(polygons, point, zbuffer, view, ambient, symbols, reflect, normal_hash_table, screen):
+    if point + 2 >= len(polygons) - 1:
+	return
     #check if point NOT in normal_hash_table, if it isn't, run hash_normals for the point
     #hash_normals(polygons, point)
     #changes normal_hash_table
     for i in range(3):
-	if not point in normal_hash_table:
-   	    hash_normals(polygons, point, normal_hash_table)
+	if not tuple([int(100 * v)/100.0 for v in polygons[point]]) in normal_hash_table:
+   	    hash_normals(polygons, point, normal_hash_table, view, ambient, symbols, reflect, 'GOURAUD')
 	point += 1 
-    point -= 2
-    colors = [get_lighting(normal_hash_table[x], view, ambient, symbols, reflect) for x in range(point, point+3)]
-    print 'made it!'    
-
+    point -= 3
+    #print [tuple([int(100 * polygons[x][v])/100.0 for v in range(4)]) for x in range(point, point+3)]
+    colors = normal_hash_table[tuple([int(100 * v)/100.0 for v in polygons[point]])]
+    scanline_convert(polygons, point, screen, zbuffer, colors[0])
     #colors[0] is point0 color, colors[1] point1, etc....
     #here, we get our 3 gradient points - bottom, mid, and top
     #modify scanlines function
@@ -93,26 +95,24 @@ def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x1, y1, z1)
     add_point(polygons, x2, y2, z2)
 
-
 #go through each polygon in polygons
 #if point (x, y, z) is found in the polygon, calculate the normal and
 #add the normal to Nv>
 #make sure to cut off floating points at 3 digits
 #once all polygons have been traversed, save this into a hash table
 #normal_hash_table has been defined as an empty dict in script.py
-def hash_normals( polygons, pointer, normal_hash_table):
+def hash_normals( polygons, pointer, normal_hash_table, view, ambient, symbols, reflect, shading):
     counter = 0
     normal = [0,0,0]
     point = [int(100 * v)/100.0 for v in polygons[pointer]]
     while counter < len(polygons):
-	if [int(100 * polygons[counter][v]/100.0) for v in range(3)] == point or\
-	   [int(100 * polygons[counter + 1][v]/100.0) for v in range(3)] == point or\
-	   [int(100 * polygons[counter + 2][v]/100.0) for v in range(3)] == point:
+	if [int(100 * polygons[counter][v])/100.0 for v in range(4)] == point or\
+	   [int(100 * polygons[counter + 1][v])/100.0 for v in range(4)] == point or\
+	   [int(100 * polygons[counter + 2][v])/100.0 for v in range(4)] == point:
 	     normal = [normal[v] + calculate_normal(polygons,counter)[v] for v in range(3)]
 	counter += 3
-    normal_hash_table[tuple(point)] = normal
-    print normal_hash_table
-    print 'made it!'  
+    normalize(normal)
+    normal_hash_table[tuple(point)] = [get_lighting(normal, view, ambient, symbols, reflect) for x in range(pointer, pointer+3)]
 
 def draw_polygons( polygons, screen, zbuffer, view, ambient, symbols, reflect, shading):
     normal_hash_table = dict()
@@ -121,24 +121,25 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, symbols, reflect, s
         return
 
     point = 0
-    while point < len(polygons) - 2:
-	if shading == 'FLAT':
+   
+    if shading == 'FLAT':
+	while point < len(polygons) - 2:
             normal = calculate_normal(polygons, point)[:]
             if normal[2] > 0:
                 color = get_lighting(normal, view, ambient, symbols, reflect )
                 scanline_convert(polygons, point, screen, zbuffer, color)
             point+= 3
-	elif shading == 'GOURAUD':
+    elif shading == 'GOURAUD':
+	while point < len(polygons) - 2:
 	    normal = calculate_normal(polygons, point)[:]
 	    if normal[2] > 0:
-		gouraud_scanlines(polygons, point, zbuffer, view, ambient, symbols, reflect, normal_hash_table )
+	    	gouraud_scanlines(polygons, point, zbuffer, view, ambient, symbols, reflect, normal_hash_table, screen )
 	    point += 3
 	    #do some stuff here where scanline is a gradient and computed using vertices
   	    #use some funky hash normal stuff idk
-	elif shading == 'PHONG':
-	    return
-	    #whomst
-    print 'made it out alive'
+    elif shading == 'PHONG':
+	return
+	#whomst
     return
 
 def add_box( polygons, x, y, z, width, height, depth ):
