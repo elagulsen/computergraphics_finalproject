@@ -20,12 +20,14 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, color):
         x+= 1
         z+= delta_z
 
-def scanline_convert(polygons, i, screen, zbuffer, colors, shading='FLAT'):
+def scanline_convert(polygons, i, screen, zbuffer, colors, shading):
     #if shading is GOURAUD, colors is an array of size 3
     flip = False
     BOT = 0
     TOP = 2
     MID = 1
+
+    point_colors = dict()
 
     if shading == 'FLAT':
 	color = colors
@@ -53,7 +55,19 @@ def scanline_convert(polygons, i, screen, zbuffer, colors, shading='FLAT'):
     dx1 = (points[MID][0] - points[BOT][0]) / distance1 if distance1 != 0 else 0
     dz1 = (points[MID][2] - points[BOT][2]) / distance1 if distance1 != 0 else 0
 
+    if shading == 'GOURAUD':
+	color = points[BOT][3]
+	if points[TOP][1] - points[BOT][1] != 0:
+	    print 'START', points[TOP], points[MID], points[BOT], 'END'
+	    color_difference = [(points[TOP][3][x] - points[BOT][3][x]) / abs(points[TOP][1] - points[BOT][1]) for x in range(3)]
+	else:
+	    color_difference = [0,0,0]
+	#print color
+	#print color_difference
+
     while y <= int(points[TOP][1]):
+	if shading == 'GOURAUD':
+	    color = [color[x] + color_difference[x] for x in range(3)]
         if ( not flip and y >= int(points[MID][1])):
             flip = True
 
@@ -76,16 +90,13 @@ def gouraud_scanlines(polygons, point, zbuffer, view, ambient, symbols, reflect,
     if point + 2 >= len(polygons) - 1:
 	return
     #check if point NOT in normal_hash_table, if it isn't, run hash_normals for the point
-    #hash_normals(polygons, point)
-    #changes normal_hash_table
     for i in range(3):
 	if not tuple([int(100 * v)/100.0 for v in polygons[point]]) in normal_hash_table:
    	    hash_normals(polygons, point, normal_hash_table, view, ambient, symbols, reflect, 'GOURAUD')
 	point += 1 
     point -= 3
-    #print [tuple([int(100 * polygons[x][v])/100.0 for v in range(4)]) for x in range(point, point+3)]
-    colors = normal_hash_table[tuple([int(100 * v)/100.0 for v in polygons[point]])]
-    scanline_convert(polygons, point, screen, zbuffer, colors[0])
+    colors = [normal_hash_table[ tuple([int(100 * v)/100.0 for v in polygons[point]])], normal_hash_table[ tuple([int(100 * v)/100.0 for v in polygons[point + 1]])], normal_hash_table[ tuple([int(100 * v)/100.0 for v in polygons[point + 2]])]]
+    scanline_convert(polygons, point, screen, zbuffer, colors, 'GOURAUD')
     #colors[0] is point0 color, colors[1] point1, etc....
     #here, we get our 3 gradient points - bottom, mid, and top
     #modify scanlines function
@@ -112,7 +123,7 @@ def hash_normals( polygons, pointer, normal_hash_table, view, ambient, symbols, 
 	     normal = [normal[v] + calculate_normal(polygons,counter)[v] for v in range(3)]
 	counter += 3
     normalize(normal)
-    normal_hash_table[tuple(point)] = [get_lighting(normal, view, ambient, symbols, reflect) for x in range(pointer, pointer+3)]
+    normal_hash_table[tuple(point)] = get_lighting(normal, view, ambient, symbols, reflect)
 
 def draw_polygons( polygons, screen, zbuffer, view, ambient, symbols, reflect, shading):
     normal_hash_table = dict()
@@ -121,7 +132,7 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, symbols, reflect, s
         return
 
     point = 0
-   
+
     if shading == 'FLAT':
 	while point < len(polygons) - 2:
             normal = calculate_normal(polygons, point)[:]
