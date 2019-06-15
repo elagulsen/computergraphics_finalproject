@@ -88,9 +88,9 @@ def limit_color(color):
     color[RED] = 245 if color[RED] > 245 else color[RED]
     color[GREEN] = 245 if color[GREEN] > 245 else color[GREEN]
     color[BLUE] = 245 if color[BLUE] > 245 else color[BLUE]
-    color[RED] = 0 if color[RED] < 0 else color[RED]
-    color[GREEN] = 0 if color[GREEN] < 0 else color[GREEN]
-    color[BLUE] = 0 if color[BLUE] < 0 else color[BLUE]
+    color[RED] = 15 if color[RED] < 15 else color[RED]
+    color[GREEN] = 15 if color[GREEN] < 15 else color[GREEN]
+    color[BLUE] = 15 if color[BLUE] < 15 else color[BLUE]
 
 #vector functions
 #normalize vetor, should modify the parameter
@@ -99,7 +99,10 @@ def normalize(vector):
                            vector[1] * vector[1] +
                            vector[2] * vector[2])
     for i in range(3):
-        vector[i] = vector[i] / magnitude
+        if magnitude != 0:
+            vector[i] = vector[i] / magnitude
+        else:
+            vector[i] = 0
 
 #Return the dot porduct of a . b
 def dot_product(a, b):

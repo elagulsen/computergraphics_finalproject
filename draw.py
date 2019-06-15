@@ -20,7 +20,7 @@ def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, color):
         x+= 1
         z+= delta_z
 
-def scanline_convert(polygons, i, screen, zbuffer, colors, shading):
+def scanline_convert(polygons, i, screen, zbuffer, colors, shading='FLAT'):
     #if shading is GOURAUD, colors is an array of size 3
     flip = False
     BOT = 0
@@ -56,27 +56,33 @@ def scanline_convert(polygons, i, screen, zbuffer, colors, shading):
     dz1 = (points[MID][2] - points[BOT][2]) / distance1 if distance1 != 0 else 0
 
     if shading == 'GOURAUD':
-	color = points[BOT][3]
-	if points[TOP][1] - points[BOT][1] != 0:
-	    print 'START', points[TOP], points[MID], points[BOT], 'END'
-	    color_difference = [(points[TOP][3][x] - points[BOT][3][x]) / abs(points[TOP][1] - points[BOT][1]) for x in range(3)]
-	else:
-	    color_difference = [0,0,0]
+        color = points[BOT][3]
+        if distance1 != 0:
+            color_difference = [(points[MID][3][x] - points[BOT][3][x]) / distance1 for x in range(3)]
+        else:
+            color_difference = [0,0,0]
 	#print color
 	#print color_difference
 
     while y <= int(points[TOP][1]):
-	if shading == 'GOURAUD':
-	    color = [color[x] + color_difference[x] for x in range(3)]
+        if shading == 'GOURAUD':
+            color = [int(color[x] - color_difference[x]) for x in range(3)]
+            limit_color(color)
         if ( not flip and y >= int(points[MID][1])):
             flip = True
-
+            if shading == 'GOURAUD':
+                if distance2 != 0:
+                    color_difference = [(points[TOP][3][x] - points[MID][3][x]) / distance2 for x in range(3)]
+                else:
+                    color_difference = [0,0,0]
             dx1 = (points[TOP][0] - points[MID][0]) / distance2 if distance2 != 0 else 0
             dz1 = (points[TOP][2] - points[MID][2]) / distance2 if distance2 != 0 else 0
             x1 = points[MID][0]
             z1 = points[MID][2]
 
         #draw_line(int(x0), y, z0, int(x1), y, z1, screen, zbuffer, color)
+        
+        
         draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, color)
         x0+= dx0
         z0+= dz0
@@ -88,7 +94,7 @@ def scanline_convert(polygons, i, screen, zbuffer, colors, shading):
 
 def gouraud_scanlines(polygons, point, zbuffer, view, ambient, symbols, reflect, normal_hash_table, screen):
     if point + 2 >= len(polygons) - 1:
-	return
+        return
     #check if point NOT in normal_hash_table, if it isn't, run hash_normals for the point
     for i in range(3):
 	if not tuple([int(100 * v)/100.0 for v in polygons[point]]) in normal_hash_table:
@@ -153,6 +159,31 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, symbols, reflect, s
 	#whomst
     return
 
+def add_mesh(polygons, mesh_file):
+    mesh_file = mesh_file.strip(':')
+    mesh_file += '.obj'
+    mesh = open(mesh_file, "r")
+    mesh = mesh.readlines()
+    vertices, current_vertex = [0], 1
+    faces = []
+    for line in mesh:
+        line = line.strip()
+        line = line.split(' ')
+        tmp_line = []
+        for item in line:
+            if item != '':
+                tmp_line.append(item)
+        line = tmp_line
+        if len(line) > 0 and line[0] == 'v':
+            vertices.append([float(line[1]), float(line[2]), float(line[3]), 1.0])
+        elif len(line) > 0 and line[0] == 'f':
+            faces.append([int(line[1]), int(line[2]), int(line[3])])
+        current_vertex += 1
+    for face in faces:
+        add_polygon(polygons, vertices[face[0]][0], vertices[face[0]][1], vertices[face[0]][2], 
+                              vertices[face[1]][0], vertices[face[1]][1], vertices[face[1]][2],
+                              vertices[face[2]][0], vertices[face[2]][1], vertices[face[2]][2])
+    
 def add_box( polygons, x, y, z, width, height, depth ):
     x1 = x + width
     y1 = y - height

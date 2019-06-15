@@ -1,0 +1,42 @@
+frames 50
+basename wavy_fruit_bowl
+shading flat
+
+constants matte_white 0.0 1.0 0.0 0.0 1.0 0.0 0.0 1.0 0.0
+constants gourd_bowl_blue 0.2 0.3 0.0 0.5 0.6 0.0 0.5 0.6 0.6
+constants i_love_gourds 0.34725 0.75164 0.628281 0.3995 0.60648 0.555802 0.2745 0.32648 0.336065 35 35 35
+light l0 1 1 1 150 150 150 disco
+light l1 0 1 0 150 0 150 reverse_disco
+
+vary disco 0 49 0 1 0 150 0 150
+vary reverse_disco 0 49 1 1 1 150 150 150 
+
+push
+box 0 500 -500 500 500 2 matte_white
+scale 1.5 1.5 1.5
+move -100 -170 0
+push
+move 50 150 0
+rotate x -70
+scale 3 3 3 
+mesh gourd_bowl_blue :Bowl
+pop
+push
+move 350 320 -200
+rotate z -20
+scale 60 60 60
+mesh i_love_gourds :Gourd
+pop
+push
+move 230 340 -220
+scale 50 50 50
+rotate z 20
+rotate y 70
+rotate x 15
+mesh i_love_gourds :Gourd
+pop
+push
+move 285 340 -240
+scale 60 60 60
+rotate x 20
+mesh i_love_gourds :Gourd

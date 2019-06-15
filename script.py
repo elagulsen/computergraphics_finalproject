@@ -134,7 +134,7 @@ def run(filename):
         screen = new_screen()
     	zbuffer = new_zbuffer()
         tmp = []
-        step_3d = 20
+        step_3d = 50
         consts = ''
         coords = []
         coords1 = []
@@ -155,8 +155,17 @@ def run(filename):
             c = command['op']
             args = command['args']
 
-	    if c == 'shading':
-		shading = command['shade_type'].upper()
+            if c == 'mesh':
+                if command['constants']:
+                    reflect = command['constants']
+                add_mesh(tmp, args[0]) 
+                matrix_mult( stack[-1], tmp)
+                draw_polygons(tmp, screen, zbuffer, view, ambient, symbols, reflect, shading)
+                tmp = []
+                reflect = '.white'
+            if c == 'shading':
+                shading = command['shade_type'].upper()
+            
             if c == 'box':
                 if command['constants']:
                     reflect = command['constants']
